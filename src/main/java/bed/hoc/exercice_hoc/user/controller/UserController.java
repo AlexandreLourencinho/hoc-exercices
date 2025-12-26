@@ -1,6 +1,7 @@
 package bed.hoc.exercice_hoc.user.controller;
 
 import bed.hoc.exercice_hoc.user.dto.UserDTOCreate;
+import bed.hoc.exercice_hoc.user.dto.UserDTOGet;
 import bed.hoc.exercice_hoc.user.dto.UserDTOLogin;
 import bed.hoc.exercice_hoc.user.dto.UserDTOUpdate;
 import bed.hoc.exercice_hoc.user.exceptions.*;
@@ -40,7 +41,7 @@ public class UserController {
         */
     }
 
-    @GetMapping("/getUser/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity getUser(@PathVariable int id) {
         try {
             return ResponseEntity.ok().body(this.userService.getUser(id));
@@ -49,17 +50,16 @@ public class UserController {
         }
     }
 
-    @GetMapping("/getUsers")
-    public ResponseEntity getUsersList() {
-        return ResponseEntity.ok().body(this.userService.getUsers());
+    @GetMapping
+    public ResponseEntity<List<UserDTOGet>> getUsersList(@RequestParam(required = false) List<Integer> ids) {
+        if (ids != null && !ids.isEmpty()) {
+            return ResponseEntity.ok().body(this.userService.getSetOfUsers(ids));
+        } else {
+            return ResponseEntity.ok().body(this.userService.getUsers());
+        }
     }
 
-    @GetMapping("/getUsersByIds")
-    public ResponseEntity getUsersList(@RequestParam List<Integer> ids) {
-        return ResponseEntity.ok().body(this.userService.getSetOfUsers(ids));
-    }
-
-    @PostMapping("/save")
+    @PostMapping
     public ResponseEntity saveUser(@RequestBody @Valid UserDTOCreate dto) {
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.saveUser(dto));
@@ -69,7 +69,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public ResponseEntity updateUser(@RequestBody @Valid UserDTOUpdate dto) {
         try {
             return ResponseEntity.ok().body(this.userService.updateUser(dto));
@@ -79,7 +79,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity deleteUser(@PathVariable int id) {
         try {
             this.userService.deleteUser(id);
@@ -90,8 +90,8 @@ public class UserController {
 
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity deleteUsers(@RequestParam List<Integer> ids) {
+    @DeleteMapping()
+    public ResponseEntity<Void> deleteUsers(@RequestParam List<Integer> ids) {
         this.userService.deleteUsers(ids);
         return ResponseEntity.noContent().build();
     }

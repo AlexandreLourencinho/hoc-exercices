@@ -92,14 +92,14 @@ class UserControllerTest {
         var list = Arrays.asList(dtoGet, dtoGet2);
         when(this.service.getUsers()).thenReturn(list);
 
-        var result = this.controller.getUsersList();
+        var result = this.controller.getUsersList(null);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(list, result.getBody());
     }
 
     @Test
-    void testGetUsersList() {
+    void testGetUsersListWithId() {
         var listOfIds = Arrays.asList(1, 2, 3);
         var list = Arrays.asList(dtoGet, dtoGet2);
         when(this.service.getSetOfUsers(anyList())).thenReturn(list);
