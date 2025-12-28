@@ -5,10 +5,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+import static bed.hoc.exercice_hoc.common.constants.CommonConstants.throwUtilityClassException;
+
 public class PasswordManager {
 
     private PasswordManager() {
-        throw new IllegalStateException("Utility class");
+        throwUtilityClassException();
     }
 
     /*note : this is a basic encryption because it's an exercice project.

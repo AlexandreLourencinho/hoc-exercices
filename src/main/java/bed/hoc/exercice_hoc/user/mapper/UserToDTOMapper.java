@@ -6,10 +6,12 @@ import bed.hoc.exercice_hoc.user.dto.UserDTOUpdate;
 import bed.hoc.exercice_hoc.user.entity.UserEntity;
 import bed.hoc.exercice_hoc.user.utils.PasswordManager;
 
+import static bed.hoc.exercice_hoc.common.constants.CommonConstants.throwUtilityClassException;
+
 public class UserToDTOMapper {
 
     private UserToDTOMapper() {
-        throw new IllegalStateException("Utility class");
+        throwUtilityClassException();
     }
 
     public static UserEntity getEntityFromDTOCreate(UserDTOCreate dto) {
