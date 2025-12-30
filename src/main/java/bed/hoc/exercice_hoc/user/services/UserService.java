@@ -4,6 +4,7 @@ import bed.hoc.exercice_hoc.user.dto.UserDTOCreate;
 import bed.hoc.exercice_hoc.user.dto.UserDTOGet;
 import bed.hoc.exercice_hoc.user.dto.UserDTOLogin;
 import bed.hoc.exercice_hoc.user.dto.UserDTOUpdate;
+import bed.hoc.exercice_hoc.user.entity.UserEntity;
 
 import java.util.List;
 
@@ -12,6 +13,8 @@ public interface UserService {
     UserDTOGet loginUser(UserDTOLogin dto);
 
     UserDTOGet getUser(int id);
+
+    UserEntity getUserEntity(int id);
 
     List<UserDTOGet> getUsers();
 

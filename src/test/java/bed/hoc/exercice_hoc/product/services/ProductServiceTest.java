@@ -72,7 +72,7 @@ class ProductServiceTest {
     void getProducts() {
         when(this.repository.findAllById(anyList())).thenReturn(List.of(this.entity));
 
-        var result = this.service.getProducts(List.of(1));
+        var result = this.service.getProducts(List.of(8));
 
         assertEquals(8, result.getFirst().getId());
     }

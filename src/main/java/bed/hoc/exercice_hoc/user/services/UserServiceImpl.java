@@ -4,6 +4,7 @@ import bed.hoc.exercice_hoc.user.dto.UserDTOCreate;
 import bed.hoc.exercice_hoc.user.dto.UserDTOGet;
 import bed.hoc.exercice_hoc.user.dto.UserDTOLogin;
 import bed.hoc.exercice_hoc.user.dto.UserDTOUpdate;
+import bed.hoc.exercice_hoc.user.entity.UserEntity;
 import bed.hoc.exercice_hoc.user.exceptions.*;
 import bed.hoc.exercice_hoc.user.mapper.UserToDTOMapper;
 import bed.hoc.exercice_hoc.user.repository.UserRepository;
@@ -45,10 +46,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTOGet getUser(int id) {
-        return UserToDTOMapper.getDTOGetFromEntity(this.userRepository.findById(id).orElseThrow(() -> {
-            log.error("couldn't get the user, the id wasn't found in db");
+        return UserToDTOMapper.getDTOGetFromEntity(this.getUserEntity(id));
+    }
+
+    @Override
+    public UserEntity getUserEntity(int id) {
+        return this.userRepository.findById(id).orElseThrow(() -> {
+            log.error("the user wasn't retrieved from DB");
             return new UserNotFoundException();
-        }));
+        });
     }
 
     @Override
@@ -72,10 +78,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTOGet updateUser(UserDTOUpdate dto) {
         this.checkDuplicateFields(dto);
-        var user = this.userRepository.findById(dto.getId()).orElseThrow(() -> {
-            log.error("the user wasn't retrieved from DB");
-            return new UserNotFoundException();
-        });
+        var user = this.getUserEntity(dto.getId());
         UserToDTOMapper.updateEntityFromDTO(user, dto);
         this.userRepository.save(user);
         return UserToDTOMapper.getDTOGetFromEntity(user);
@@ -83,10 +86,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(int id) {
-        var user = this.userRepository.findById(id).orElseThrow(() -> {
-            log.error("couldn't delete the user since the id wasn't found in DB");
-            return new UserNotFoundException();
-        });
+        var user = this.getUserEntity(id);
         this.userRepository.delete(user);
     }
 

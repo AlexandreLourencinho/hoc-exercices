@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -37,12 +38,22 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductDTOGet> getProducts(List<Integer> ids) {
-        return this.repository.findAllById(ids).stream().map(ProductToDTOMapper::entityToDTOget).toList();
+        return this.getProductsEntity(ids).stream().map(ProductToDTOMapper::entityToDTOget).toList();
     }
 
     @Override
     public List<ProductDTOGet> getProducts() {
         return this.repository.findAll().stream().map(ProductToDTOMapper::entityToDTOget).toList();
+    }
+
+    @Override
+    public List<ProductEntity> getProductsEntity(List<Integer> ids) {
+        var listProduct = this.repository.findAllById(ids);
+        var foundIds = listProduct.stream().map(ProductEntity::getId).collect(Collectors.toSet());
+        if (!foundIds.containsAll(ids)) {
+            throw new ProductNotFoundException();
+        }
+        return listProduct;
     }
 
     @Override
