@@ -25,7 +25,6 @@ class ProductControllerTest {
     private ProductDTOCreate dtoCreate;
     private ProductDTOUpdate dtoUpdate;
     private ProductDTOStock dtoStock;
-    private final String messageNotFound = "Product wasn't retrieved in database";
 
     @BeforeEach
     void setUp() {
@@ -51,10 +50,7 @@ class ProductControllerTest {
     void getProductNotFound() {
         doThrow(new ProductNotFoundException()).when(this.service).getProduct(anyInt());
 
-        var result = this.controller.getProduct(1);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals(this.messageNotFound, result.getBody());
+        assertThrows(ProductNotFoundException.class, () -> this.controller.getProduct(1));
     }
 
     @Test
@@ -71,10 +67,7 @@ class ProductControllerTest {
     void getProductStockNotFound() {
         doThrow(new ProductNotFoundException()).when(this.service).getProductStock(anyInt());
 
-        var result = this.controller.getProductStock(20);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals(this.messageNotFound, result.getBody());
+        assertThrows(ProductNotFoundException.class, () -> this.controller.getProductStock(20));
     }
 
     @Test
@@ -85,7 +78,7 @@ class ProductControllerTest {
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(result.getBody());
-        assertEquals(this.dtoGet, ((List<ProductDTOGet>) result.getBody()).getFirst());
+        assertEquals(this.dtoGet, result.getBody().getFirst());
     }
 
     @Test
@@ -96,7 +89,7 @@ class ProductControllerTest {
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(result.getBody());
-        assertEquals(this.dtoGet, ((List<ProductDTOGet>) result.getBody()).getFirst());
+        assertEquals(this.dtoGet, result.getBody().getFirst());
     }
 
     @Test
@@ -123,10 +116,7 @@ class ProductControllerTest {
     void updateProductNotFound() {
         doThrow(new ProductNotFoundException()).when(this.service).updateProduct(any(ProductDTOUpdate.class));
 
-        var result = this.controller.updateProduct(this.dtoUpdate);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals(this.messageNotFound, result.getBody());
+        assertThrows(ProductNotFoundException.class, () -> this.controller.updateProduct(this.dtoUpdate));
     }
 
     @Test
@@ -146,4 +136,5 @@ class ProductControllerTest {
 
         assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
     }
+
 }

@@ -1,8 +1,9 @@
 package bed.hoc.exercice_hoc.product.controller;
 
 import bed.hoc.exercice_hoc.product.dto.ProductDTOCreate;
+import bed.hoc.exercice_hoc.product.dto.ProductDTOGet;
+import bed.hoc.exercice_hoc.product.dto.ProductDTOStock;
 import bed.hoc.exercice_hoc.product.dto.ProductDTOUpdate;
-import bed.hoc.exercice_hoc.product.exceptions.ProductNotFoundException;
 import bed.hoc.exercice_hoc.product.services.ProductService;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
@@ -25,25 +26,17 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity getProduct(@PathVariable int id) {
-        try {
-            return ResponseEntity.ok(this.service.getProduct(id));
-        } catch (ProductNotFoundException pnfex) {
-            return this.manageCatchedError(pnfex);
-        }
+    public ResponseEntity<ProductDTOGet> getProduct(@PathVariable int id) {
+        return ResponseEntity.ok(this.service.getProduct(id));
     }
 
     @GetMapping("/stock/{id}")
-    public ResponseEntity getProductStock(@PathVariable int id) {
-        try {
-            return ResponseEntity.ok(this.service.getProductStock(id));
-        } catch (ProductNotFoundException pnfex) {
-            return this.manageCatchedError(pnfex);
-        }
+    public ResponseEntity<ProductDTOStock> getProductStock(@PathVariable int id) {
+        return ResponseEntity.ok(this.service.getProductStock(id));
     }
 
     @GetMapping
-    public ResponseEntity getProducts(@RequestParam @Nullable List<Integer> ids) {
+    public ResponseEntity<List<ProductDTOGet>> getProducts(@RequestParam @Nullable List<Integer> ids) {
         if (ids != null && !ids.isEmpty()) {
             return ResponseEntity.ok(this.service.getProducts(ids));
         } else {
@@ -52,17 +45,13 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity createProduct(@RequestBody @Valid ProductDTOCreate dto) {
+    public ResponseEntity<ProductDTOGet> createProduct(@RequestBody @Valid ProductDTOCreate dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.service.createProduct(dto));
     }
 
     @PutMapping
-    public ResponseEntity updateProduct(@RequestBody @Valid ProductDTOUpdate dto) {
-        try {
-            return ResponseEntity.ok(this.service.updateProduct(dto));
-        } catch (ProductNotFoundException pnfex) {
-            return this.manageCatchedError(pnfex);
-        }
+    public ResponseEntity<ProductDTOGet> updateProduct(@RequestBody @Valid ProductDTOUpdate dto) {
+        return ResponseEntity.ok(this.service.updateProduct(dto));
     }
 
     @DeleteMapping("/{id}")
@@ -75,10 +64,6 @@ public class ProductController {
     public ResponseEntity<Void> deleteProducts(@RequestParam List<Integer> ids) {
         this.service.deleteProducts(ids);
         return ResponseEntity.noContent().build();
-    }
-
-    private ResponseEntity<String> manageCatchedError(ProductNotFoundException pnex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pnex.getMessage());
     }
 
 }
