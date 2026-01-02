@@ -49,10 +49,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductEntity> getProductsEntity(List<Integer> ids) {
         var listProduct = this.repository.findAllById(ids);
-        var foundIds = listProduct.stream().map(ProductEntity::getId).collect(Collectors.toSet());
-        if (!foundIds.containsAll(ids)) {
-            throw new ProductNotFoundException();
-        }
+        this.assertAllProductsFound(ids, listProduct);
         return listProduct;
     }
 
@@ -83,6 +80,17 @@ public class ProductServiceImpl implements ProductService {
             log.error("Product with id {} wasn't retrieved in database", id);
             return new ProductNotFoundException();
         });
+    }
+
+    private void assertAllProductsFound(List<Integer> requestedIds, List<ProductEntity> foundProducts) {
+        var foundIds = foundProducts.stream()
+                .map(ProductEntity::getId)
+                .collect(Collectors.toSet());
+
+        if (!foundIds.containsAll(requestedIds)) {
+            log.error("Some products were not found. Requested ids: {}, found ids: {}", requestedIds, foundIds);
+            throw new ProductNotFoundException();
+        }
     }
 
 }

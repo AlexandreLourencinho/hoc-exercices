@@ -13,7 +13,7 @@ public class ProductControllerAdvice {
 
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<String> handleProductNotFoundException(ProductNotFoundException pnfex) {
-        log.error("the requested product wasn't retrieved from database");
+        log.error("the requested product wasn't retrieved from database", pnfex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pnfex.getMessage());
     }
 
