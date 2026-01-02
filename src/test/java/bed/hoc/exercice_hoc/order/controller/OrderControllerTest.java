@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
@@ -25,8 +26,6 @@ class OrderControllerTest {
 
     private OrderService service;
     private OrderController controller;
-    private final String userNotFound = "User not found in database";
-    private final String productNotFound = "Product wasn't retrieved in database";
 
     @BeforeEach
     void setUp() {
@@ -50,31 +49,21 @@ class OrderControllerTest {
     void getOrderUserNotFound() {
         doThrow(new UserNotFoundException()).when(this.service).getOrder(anyInt());
 
-        var result = this.controller.getOrder(1);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals(this.userNotFound, result.getBody());
+        assertThrows(UserNotFoundException.class, () -> this.controller.getOrder(1));
     }
 
     @Test
     void getOrderProductNotFound() {
         doThrow(new ProductNotFoundException()).when(this.service).getOrder(anyInt());
 
-        var result = this.controller.getOrder(1);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals(this.productNotFound, result.getBody());
+        assertThrows(ProductNotFoundException.class, () -> this.controller.getOrder(1));
     }
 
     @Test
     void getOrderOrderNotFound() {
         doThrow(new OrderNotFoundException()).when(this.service).getOrder(anyInt());
 
-        var result = this.controller.getOrder(1);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        String orderNotFound = "Order wasn't retrieved from database.";
-        assertEquals(orderNotFound, result.getBody());
+        assertThrows(OrderNotFoundException.class, () -> this.controller.getOrder(1));
     }
 
     @Test
@@ -93,51 +82,41 @@ class OrderControllerTest {
     @Test
     void createOrUpdateProductNotFound() {
         doThrow(new ProductNotFoundException()).when(this.service).updateOrder(anyInt(), any(OrderDTOUpdate.class));
+        var dto = new OrderDTOUpdate();
 
-        var result = this.controller.createOrUpdate(new OrderDTOUpdate(), 1);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals(this.productNotFound, result.getBody());
+        assertThrows(ProductNotFoundException.class, () -> this.controller.createOrUpdate(dto, 1));
     }
 
     @Test
     void createOrUpdateUserNotFound() {
         doThrow(new UserNotFoundException()).when(this.service).updateOrder(anyInt(), any(OrderDTOUpdate.class));
+        var dto = new OrderDTOUpdate();
 
-        var result = this.controller.createOrUpdate(new OrderDTOUpdate(), 1);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals(this.userNotFound, result.getBody());
+        assertThrows(UserNotFoundException.class, () -> this.controller.createOrUpdate(dto, 1));
     }
 
     @Test
     void createOrUpdateInvalidQuantity() {
         doThrow(new InvalidQuantityException("bad qtiti")).when(this.service).updateOrder(anyInt(), any(OrderDTOUpdate.class));
+        var dto = new OrderDTOUpdate();
 
-        var result = this.controller.createOrUpdate(new OrderDTOUpdate(), 1);
-
-        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
-        assertEquals("bad qtiti", result.getBody());
+        assertThrows(InvalidQuantityException.class, () -> this.controller.createOrUpdate(dto, 1));
     }
 
     @Test
     void createOrUpdateProductInactive() {
         doThrow(new ProductInactiveException("product is inactive")).when(this.service).updateOrder(anyInt(), any(OrderDTOUpdate.class));
+        var dto = new OrderDTOUpdate();
 
-        var result = this.controller.createOrUpdate(new OrderDTOUpdate(), 1);
-
-        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
-        assertEquals("product is inactive", result.getBody());
+        assertThrows(ProductInactiveException.class, () -> this.controller.createOrUpdate(dto, 1));
     }
 
     @Test
     void createOrUpdateStockNotSufficient() {
         doThrow(new StockNotSufficientException("not enough stock")).when(this.service).updateOrder(anyInt(), any(OrderDTOUpdate.class));
+        var dto = new OrderDTOUpdate();
 
-        var result = this.controller.createOrUpdate(new OrderDTOUpdate(), 1);
-
-        assertEquals(HttpStatus.CONFLICT, result.getStatusCode());
-        assertEquals("not enough stock", result.getBody());
+        assertThrows(StockNotSufficientException.class, () -> this.controller.createOrUpdate(dto, 1));
     }
 
     @Test

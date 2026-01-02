@@ -10,6 +10,7 @@ import bed.hoc.exercice_hoc.order.exceptions.OrderNotFoundException;
 import bed.hoc.exercice_hoc.order.exceptions.ProductInactiveException;
 import bed.hoc.exercice_hoc.order.exceptions.StockNotSufficientException;
 import bed.hoc.exercice_hoc.order.mapper.OrderToDTOMapper;
+import bed.hoc.exercice_hoc.order.model.OrderUpdateContext;
 import bed.hoc.exercice_hoc.order.repository.OrderRepository;
 import bed.hoc.exercice_hoc.product.entity.ProductEntity;
 import bed.hoc.exercice_hoc.product.exceptions.ProductNotFoundException;
@@ -56,35 +57,16 @@ public class OrderServiceImpl implements OrderService {
             throw new InvalidQuantityException("There is a negative quantity");
         }
 
-        //get products asked from user. the map here uses the list of items in dto and returns a list with only the ids.
-        var listProductEntities = this.productService.getProductsEntity(dto.getItems().stream().map(OrderItemDTO::getProductId).toList());
-        // transformed into a map for performance. in Collectors.toMap() works like that :
-        // the first parameter will be the key. since it's a list of product entities, we want ids in key.
-        // the second one is the entity itself. Since it needs a function, we take the product as parameter and return it directly.
-        // that's why the second parameter is p -> p.
-        Map<Integer, ProductEntity> productMap = listProductEntities.stream()
-                .collect(Collectors.toMap(ProductEntity::getId, p -> p)); // stock products in a map with id in key and product entity in value
-        var user = this.userService.getUserEntity(userId);
-        var order = this.repository.findByUser(user);
-
-        // transforming the list into map for performance gain. map.get() is much faster than iterating over a list.
-        // the order here is an optional. so there's two cases:
-        // order.map() consider it "present". so it creates the map of existing items.
-        // the 'orElse' here returns an empty map, because otherwise the variable would be null.
-        // and if the variable is null, existingItemsMap.get() in checkDtoValidity would return a null pointer.
-        Map<Integer, OrderItemEntity> existingItemsMap = order
-                .map(o -> o.getItems().stream()
-                        .collect(Collectors.toMap(oi -> oi.getProduct().getId(), oi -> oi)))
-                .orElse(Collections.emptyMap());
+        var context = this.buildUpdateContext(userId, dto);
 
         // check if all products are found in db and if the stock is sufficient to add to the order
         // theoretically this check should be done once in the front already, but it'll be done in the back also anyway
-        dto.getItems().forEach(item -> this.checkDtoValidity(item, existingItemsMap, productMap));
+        dto.getItems().forEach(item -> this.checkDtoValidity(item, context.getExistingItemsMap(), context.getProductMap()));
 
         //same as before with the optional. or the order is here, and so we update it, or we create it, here in the
         // orElseGet(() -> ) is called when optional is empty, and so we create a new Entity.
-        OrderEntity orderEntity = order.map(entity -> this.updateOrderItems(entity, dto, productMap))
-                .orElseGet(() -> this.createOrder(user, dto, productMap));
+        OrderEntity orderEntity = context.getExistingOrder().map(entity -> this.updateOrderItems(entity, dto, context.getProductMap()))
+                .orElseGet(() -> this.createOrder(context.getUser(), dto, context.getProductMap()));
         return OrderToDTOMapper.entityToDTO(this.repository.save(orderEntity));
     }
 
@@ -93,6 +75,47 @@ public class OrderServiceImpl implements OrderService {
     public void deleteOrder(int userId) {
         var user = this.userService.getUserEntity(userId);
         this.repository.deleteByUser(user);
+    }
+
+    private OrderUpdateContext buildUpdateContext(int userId, OrderDTOUpdate dto) {
+
+        var user = userService.getUserEntity(userId);
+
+        //get products asked from user. the map here uses the list of items in dto and returns a list with only the ids.
+        var products = productService.getProductsEntity(
+                dto.getItems().stream()
+                        .map(OrderItemDTO::getProductId)
+                        .toList()
+        );
+
+        // transformed into a map for performance. in Collectors.toMap() works like that :
+        // the first parameter will be the key. since it's a list of product entities, we want ids in key.
+        // the second one is the entity itself. Since it needs a function, we take the product as parameter and return it directly.
+        // that's why the second parameter is p -> p.
+        var productMap = products.stream()
+                .collect(Collectors.toMap(ProductEntity::getId, p -> p));// stock products in a map with id in key and product entity in value
+
+        var existingOrder = repository.findByUser(user);
+
+        // transforming the list into map for performance gain. map.get() is much faster than iterating over a list.
+        // the order here is an optional. so there's two cases:
+        // order.map() consider it "present". so it creates the map of existing items.
+        // the 'orElse' here returns an empty map, because otherwise the variable would be null.
+        // and if the variable is null, existingItemsMap.get() in checkDtoValidity would return a null pointer.
+        var existingItemsMap = existingOrder
+                .map(o -> o.getItems().stream()
+                        .collect(Collectors.toMap(
+                                oi -> oi.getProduct().getId(),
+                                oi -> oi
+                        )))
+                .orElse(Collections.emptyMap());
+
+        return new OrderUpdateContext(
+                user,
+                existingOrder,
+                productMap,
+                existingItemsMap
+        );
     }
 
     private void checkDtoValidity(OrderItemDTO item, Map<Integer, OrderItemEntity> existingItemsMap, Map<Integer, ProductEntity> productMap) {
