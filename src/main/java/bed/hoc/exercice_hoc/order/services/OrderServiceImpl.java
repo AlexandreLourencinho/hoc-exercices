@@ -45,7 +45,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDTOGet getOrder(int userId) {
         var user = this.userService.getUserEntity(userId);
-        var order = this.repository.findByUser(user).orElseThrow(OrderNotFoundException::new);
+        var order = this.repository.findByUser(user)
+                .orElseThrow(() -> new OrderNotFoundException(String.format("Order wasn't retrieved for user %s", user.getUsername())));
         return OrderToDTOMapper.entityToDTO(order);
     }
 
@@ -54,7 +55,12 @@ public class OrderServiceImpl implements OrderService {
     public OrderDTOGet updateOrder(int userId, OrderDTOUpdate dto) {
         //check quantity validity
         if (dto.getItems().stream().anyMatch(predicate -> predicate.getQuantity() <= 0)) {
-            throw new InvalidQuantityException("There is a negative quantity");
+            var itemInvalid = dto.getItems().stream().filter(predicate -> predicate.getQuantity() <= 0).findFirst().orElse(null);
+            throw new InvalidQuantityException(
+                    itemInvalid != null ?
+                            String.format("Product %s has a invalid quantity of %s", itemInvalid.getProductId().toString(), itemInvalid.getQuantity().toString())
+                            : "A product was set with an invalid quantity."
+            );
         }
 
         var context = this.buildUpdateContext(userId, dto);
@@ -120,10 +126,11 @@ public class OrderServiceImpl implements OrderService {
 
     private void checkDtoValidity(OrderItemDTO item, Map<Integer, OrderItemEntity> existingItemsMap, Map<Integer, ProductEntity> productMap) {
         var product = productMap.get(item.getProductId());
-        if (product == null) throw new ProductNotFoundException();
+        if (product == null)
+            throw new ProductNotFoundException(String.format("Product with id %s wasn't retrieved in database", item.getProductId().toString()));
 
         if (!product.isActive())
-            throw new ProductInactiveException("the product %s (%s) is inactive", product.getId().toString(), product.getName());
+            throw new ProductInactiveException(String.format("the product %s (%s) is inactive", product.getId().toString(), product.getName()));
 
         int oldQuantity = 0;
 
@@ -139,7 +146,7 @@ public class OrderServiceImpl implements OrderService {
         //check stock availability
         if (product.getStockQuantity() - delta < 0) {
             throw new StockNotSufficientException(
-                    "there isn't enough stock for the product " + product.getId() + " " + product.getName());
+                    String.format("there isn't enough stock for the product %s %s", product.getId(), product.getName()));
         }
 
         // decrease or readjust stock from delta

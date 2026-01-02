@@ -50,7 +50,7 @@ class UserControllerTest {
 
     @Test
     void logUserWithUserNotFound() {
-        doThrow(new UserNotFoundException()).when(this.service).loginUser(any(UserDTOLogin.class));
+        doThrow(new UserNotFoundException("")).when(this.service).loginUser(any(UserDTOLogin.class));
 
         assertThrows(UserNotFoundException.class, () -> this.controller.logUser(dtoLogin));
     }
@@ -74,7 +74,7 @@ class UserControllerTest {
 
     @Test
     void getUserNotFound() {
-        doThrow(new UserNotFoundException()).when(this.service).getUser(any(Integer.class));
+        doThrow(new UserNotFoundException("")).when(this.service).getUser(any(Integer.class));
 
         assertThrows(UserNotFoundException.class, () -> this.controller.getUser(1));
     }
@@ -175,7 +175,7 @@ class UserControllerTest {
 
     @Test
     void deleteUserWithUserNotFound() {
-        doThrow(new UserNotFoundException()).when(this.service).deleteUser(any(Integer.class));
+        doThrow(new UserNotFoundException("")).when(this.service).deleteUser(any(Integer.class));
 
         assertThrows(UserNotFoundException.class, () -> this.controller.deleteUser(1));
     }

@@ -78,7 +78,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductEntity findProductOrElseThrow(int id) {
         return this.repository.findById(id).orElseThrow(() -> {
             log.error("Product with id {} wasn't retrieved in database", id);
-            return new ProductNotFoundException();
+            return new ProductNotFoundException(String.format("Product with id %s wasn't retrieved.", id));
         });
     }
 

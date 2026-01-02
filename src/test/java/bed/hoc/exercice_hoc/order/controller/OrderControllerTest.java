@@ -47,7 +47,7 @@ class OrderControllerTest {
 
     @Test
     void getOrderUserNotFound() {
-        doThrow(new UserNotFoundException()).when(this.service).getOrder(anyInt());
+        doThrow(new UserNotFoundException("")).when(this.service).getOrder(anyInt());
 
         assertThrows(UserNotFoundException.class, () -> this.controller.getOrder(1));
     }
@@ -61,7 +61,7 @@ class OrderControllerTest {
 
     @Test
     void getOrderOrderNotFound() {
-        doThrow(new OrderNotFoundException()).when(this.service).getOrder(anyInt());
+        doThrow(new OrderNotFoundException("")).when(this.service).getOrder(anyInt());
 
         assertThrows(OrderNotFoundException.class, () -> this.controller.getOrder(1));
     }
@@ -89,7 +89,7 @@ class OrderControllerTest {
 
     @Test
     void createOrUpdateUserNotFound() {
-        doThrow(new UserNotFoundException()).when(this.service).updateOrder(anyInt(), any(OrderDTOUpdate.class));
+        doThrow(new UserNotFoundException("")).when(this.service).updateOrder(anyInt(), any(OrderDTOUpdate.class));
         var dto = new OrderDTOUpdate();
 
         assertThrows(UserNotFoundException.class, () -> this.controller.createOrUpdate(dto, 1));

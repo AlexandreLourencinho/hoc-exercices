@@ -35,7 +35,7 @@ public class UserServiceImpl implements UserService {
     public UserDTOGet loginUser(UserDTOLogin dto) {
         var entity = this.userRepository.findByUsernameOrEmail(dto.getUsernameOrEmail(), dto.getUsernameOrEmail()).orElseThrow(() -> {
             log.error("user wasn't retrieved in db while trying to log in");
-            return new UserNotFoundException();
+            return new UserNotFoundException(String.format("User %s was not found", dto.getUsernameOrEmail()));
         });
         if (!PasswordManager.verifyPassword(dto.getPassword(), entity.getPassword())) {
             throw new InvalidCredentialException();
@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
     public UserEntity getUserEntity(int id) {
         return this.userRepository.findById(id).orElseThrow(() -> {
             log.error("the user wasn't retrieved from DB");
-            return new UserNotFoundException();
+            return new UserNotFoundException(String.format("User with id %s was not found.", id));
         });
     }
 
@@ -109,7 +109,7 @@ public class UserServiceImpl implements UserService {
                 .filter(u -> !u.getId().equals(currentId))
                 .ifPresent(u -> {
                     log.error(MAIL_ALREADY_EXISTS, action);
-                    throw new EmailAlreadyExistsException("This mail is already used by another account");
+                    throw new EmailAlreadyExistsException(String.format("Mail %s is already taken.", email));
                 });
 
         userRepository.findByNameAndFirstname(name, firstname)
@@ -117,14 +117,14 @@ public class UserServiceImpl implements UserService {
                 .ifPresent(u -> {
                     log.error(COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS, action);
                     throw new NameAndFirstnameAlreadyExistsException(
-                            "The couple name + firstname is already used by another account");
+                            String.format("The name %s %s is already used by another account.", name, firstname));
                 });
 
         userRepository.findByUsername(username)
                 .filter(u -> !u.getId().equals(currentId))
                 .ifPresent(u -> {
                     log.error(USERNAME_ALREADY_EXISTS, action);
-                    throw new UsernameAlreadyTakenException("This username is already in use.");
+                    throw new UsernameAlreadyTakenException(String.format("Username %s is already in use.", username));
                 });
     }
 

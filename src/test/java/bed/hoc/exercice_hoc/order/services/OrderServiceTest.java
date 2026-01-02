@@ -60,14 +60,14 @@ class OrderServiceTest {
         var order = new OrderEntity();
         order.setUser(user).setId(55);
         when(this.userService.getUserEntity(anyInt())).thenReturn(user);
-        doThrow(new OrderNotFoundException()).when(this.repository).findByUser(any(UserEntity.class));
+        doThrow(new OrderNotFoundException("")).when(this.repository).findByUser(any(UserEntity.class));
 
         assertThrows(OrderNotFoundException.class, () -> this.service.getOrder(1));
     }
 
     @Test
     void getOrderUserNotFound() {
-        doThrow(new UserNotFoundException()).when(this.userService).getUserEntity(anyInt());
+        doThrow(new UserNotFoundException("")).when(this.userService).getUserEntity(anyInt());
 
         assertThrows(UserNotFoundException.class, () -> this.service.getOrder(1));
     }
@@ -116,7 +116,7 @@ class OrderServiceTest {
     void updateOrderInvalidQuantity() {
         var dto = new OrderDTOUpdate();
         var itemDto = new OrderItemDTO();
-        itemDto.setQuantity(-5);
+        itemDto.setQuantity(-5).setProductId(5);
         dto.setItems(List.of(itemDto));
 
         assertThrows(InvalidQuantityException.class, () -> this.service.updateOrder(1, dto));
@@ -141,7 +141,7 @@ class OrderServiceTest {
         itemDto.setQuantity(5).setId(1).setProductId(2);
         dto.setItems(List.of(itemDto));
         when(this.productService.getProductsEntity(anyList())).thenReturn(List.of(productEntity));
-        doThrow(new UserNotFoundException()).when(this.userService).getUserEntity(anyInt());
+        doThrow(new UserNotFoundException("")).when(this.userService).getUserEntity(anyInt());
 
         assertThrows(UserNotFoundException.class, () -> this.service.updateOrder(1, dto));
     }
