@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class UserControllerTest {
@@ -51,20 +52,14 @@ class UserControllerTest {
     void logUserWithUserNotFound() {
         doThrow(new UserNotFoundException()).when(this.service).loginUser(any(UserDTOLogin.class));
 
-        var result = this.controller.logUser(dtoLogin);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals("User not found in database", result.getBody());
+        assertThrows(UserNotFoundException.class, () -> this.controller.logUser(dtoLogin));
     }
 
     @Test
     void logUserWithInvalidCred() {
         doThrow(new InvalidCredentialException()).when(this.service).loginUser(any(UserDTOLogin.class));
 
-        var result = this.controller.logUser(dtoLogin);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, result.getStatusCode());
-        assertEquals("The password is incorrect", result.getBody());
+        assertThrows(InvalidCredentialException.class, () -> this.controller.logUser(this.dtoLogin));
     }
 
     @Test
@@ -81,10 +76,7 @@ class UserControllerTest {
     void getUserNotFound() {
         doThrow(new UserNotFoundException()).when(this.service).getUser(any(Integer.class));
 
-        var result = this.controller.getUser(1);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals("User not found in database", result.getBody());
+        assertThrows(UserNotFoundException.class, () -> this.controller.getUser(1));
     }
 
     @Test
@@ -124,30 +116,21 @@ class UserControllerTest {
     void saveUserWithEmailTaken() {
         doThrow(new EmailAlreadyExistsException("exists")).when(this.service).saveUser(any(UserDTOCreate.class));
 
-        var result = this.controller.saveUser(dtoCreate);
-
-        assertEquals(HttpStatus.CONFLICT, result.getStatusCode());
-        assertEquals("exists", result.getBody());
+        assertThrows(EmailAlreadyExistsException.class, () -> this.controller.saveUser(this.dtoCreate));
     }
 
     @Test
     void saveUserWithNameFirstnameTaken() {
         doThrow(new NameAndFirstnameAlreadyExistsException("exists")).when(this.service).saveUser(any(UserDTOCreate.class));
 
-        var result = this.controller.saveUser(dtoCreate);
-
-        assertEquals(HttpStatus.CONFLICT, result.getStatusCode());
-        assertEquals("exists", result.getBody());
+        assertThrows(NameAndFirstnameAlreadyExistsException.class, () -> this.controller.saveUser(this.dtoCreate));
     }
 
     @Test
     void saveUserWithUsernameTaken() {
         doThrow(new UsernameAlreadyTakenException("exists")).when(this.service).saveUser(any(UserDTOCreate.class));
 
-        var result = this.controller.saveUser(dtoCreate);
-
-        assertEquals(HttpStatus.CONFLICT, result.getStatusCode());
-        assertEquals("exists", result.getBody());
+        assertThrows(UsernameAlreadyTakenException.class, () -> this.controller.saveUser(this.dtoCreate));
     }
 
     @Test
@@ -164,30 +147,21 @@ class UserControllerTest {
     void updateUserWithEmailTaken() {
         doThrow(new EmailAlreadyExistsException("exists")).when(this.service).updateUser(any(UserDTOUpdate.class));
 
-        var result = this.controller.updateUser(dtoUpdate);
-
-        assertEquals(HttpStatus.CONFLICT, result.getStatusCode());
-        assertEquals("exists", result.getBody());
+        assertThrows(EmailAlreadyExistsException.class, () -> this.controller.updateUser(this.dtoUpdate));
     }
 
     @Test
     void updateUserWithNameFirstnameTaken() {
         doThrow(new NameAndFirstnameAlreadyExistsException("exists")).when(this.service).updateUser(any(UserDTOUpdate.class));
 
-        var result = this.controller.updateUser(dtoUpdate);
-
-        assertEquals(HttpStatus.CONFLICT, result.getStatusCode());
-        assertEquals("exists", result.getBody());
+        assertThrows(NameAndFirstnameAlreadyExistsException.class, () -> this.controller.updateUser(this.dtoUpdate));
     }
 
     @Test
     void updateUserWithUsernameTaken() {
         doThrow(new UsernameAlreadyTakenException("exists")).when(this.service).updateUser(any(UserDTOUpdate.class));
 
-        var result = this.controller.updateUser(dtoUpdate);
-
-        assertEquals(HttpStatus.CONFLICT, result.getStatusCode());
-        assertEquals("exists", result.getBody());
+        assertThrows(UsernameAlreadyTakenException.class, () -> this.controller.updateUser(this.dtoUpdate));
     }
 
     @Test
@@ -203,10 +177,7 @@ class UserControllerTest {
     void deleteUserWithUserNotFound() {
         doThrow(new UserNotFoundException()).when(this.service).deleteUser(any(Integer.class));
 
-        var result = this.controller.deleteUser(1);
-
-        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
-        assertEquals("User not found in database", result.getBody());
+        assertThrows(UserNotFoundException.class, () -> this.controller.deleteUser(1));
     }
 
     @Test
@@ -217,4 +188,5 @@ class UserControllerTest {
 
         assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
     }
+
 }

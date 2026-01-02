@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTOGet saveUser(UserDTOCreate dto) {
-        this.checkDuplicateFields(dto);
+        this.checkDuplicateFields(null, dto);
         var user = UserToDTOMapper.getEntityFromDTOCreate(dto);
         this.userRepository.save(user);
         return UserToDTOMapper.getDTOGetFromEntity(user);
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTOGet updateUser(UserDTOUpdate dto) {
-        this.checkDuplicateFields(dto);
+        this.checkDuplicateFields(dto, null);
         var user = this.getUserEntity(dto.getId());
         UserToDTOMapper.updateEntityFromDTO(user, dto);
         this.userRepository.save(user);
@@ -95,40 +95,37 @@ public class UserServiceImpl implements UserService {
         this.userRepository.deleteAllById(ids);
     }
 
-    private void checkDuplicateFields(UserDTOCreate dto) {
-        var entityFromMail = this.userRepository.findByEmail(dto.getEmail());
-        if (entityFromMail.isPresent()) {
-            log.error(MAIL_ALREADY_EXISTS, CREATE_NEW);
-            throw new EmailAlreadyExistsException("this mail is already used by another account");
-        }
-        var entityFromName = this.userRepository.findByNameAndFirstname(dto.getName(), dto.getFirstname());
-        if (entityFromName.isPresent()) {
-            log.error(COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS, CREATE_NEW);
-            throw new NameAndFirstnameAlreadyExistsException("The couple name + firstname is already used by another account");
-        }
-        var entityFromUsername = this.userRepository.findByUsername(dto.getUsername());
-        if (entityFromUsername.isPresent()) {
-            log.error(USERNAME_ALREADY_EXISTS, CREATE_NEW);
-            throw new UsernameAlreadyTakenException("This username is already in use.");
-        }
-    }
+    private void checkDuplicateFields(UserDTOUpdate dtoUpdate, UserDTOCreate dtoCreate) {
 
-    private void checkDuplicateFields(UserDTOUpdate dto) {
-        var entityFromMail = this.userRepository.findByEmail(dto.getEmail());
-        if (entityFromMail.isPresent() && !entityFromMail.get().getId().equals(dto.getId())) {
-            log.error(MAIL_ALREADY_EXISTS, UPDATE);
-            throw new EmailAlreadyExistsException("this mail is already used by another account");
-        }
-        var entityFromName = this.userRepository.findByNameAndFirstname(dto.getName(), dto.getFirstname());
-        if (entityFromName.isPresent() && !entityFromName.get().getId().equals(dto.getId())) {
-            log.error(COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS, UPDATE);
-            throw new NameAndFirstnameAlreadyExistsException("The couple name + firstname is already used by another account");
-        }
-        var entityFromUsername = this.userRepository.findByUsername(dto.getUsername());
-        if (entityFromUsername.isPresent() && !entityFromUsername.get().getId().equals(dto.getId())) {
-            log.error(USERNAME_ALREADY_EXISTS, UPDATE);
-            throw new UsernameAlreadyTakenException("This username is already in use.");
-        }
+        boolean isUpdate = dtoUpdate != null;
+        Integer currentId = isUpdate ? dtoUpdate.getId() : null;
+        String email = isUpdate ? dtoUpdate.getEmail() : dtoCreate.getEmail();
+        String name = isUpdate ? dtoUpdate.getName() : dtoCreate.getName();
+        String firstname = isUpdate ? dtoUpdate.getFirstname() : dtoCreate.getFirstname();
+        String username = isUpdate ? dtoUpdate.getUsername() : dtoCreate.getUsername();
+        String action = isUpdate ? UPDATE : CREATE_NEW;
+
+        userRepository.findByEmail(email)
+                .filter(u -> !u.getId().equals(currentId))
+                .ifPresent(u -> {
+                    log.error(MAIL_ALREADY_EXISTS, action);
+                    throw new EmailAlreadyExistsException("This mail is already used by another account");
+                });
+
+        userRepository.findByNameAndFirstname(name, firstname)
+                .filter(u -> !u.getId().equals(currentId))
+                .ifPresent(u -> {
+                    log.error(COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS, action);
+                    throw new NameAndFirstnameAlreadyExistsException(
+                            "The couple name + firstname is already used by another account");
+                });
+
+        userRepository.findByUsername(username)
+                .filter(u -> !u.getId().equals(currentId))
+                .ifPresent(u -> {
+                    log.error(USERNAME_ALREADY_EXISTS, action);
+                    throw new UsernameAlreadyTakenException("This username is already in use.");
+                });
     }
 
 }
