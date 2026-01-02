@@ -7,6 +7,7 @@ import bed.hoc.exercice_hoc.user.dto.UserDTOUpdate;
 import bed.hoc.exercice_hoc.user.entity.UserEntity;
 import bed.hoc.exercice_hoc.user.exceptions.*;
 import bed.hoc.exercice_hoc.user.mapper.UserToDTOMapper;
+import bed.hoc.exercice_hoc.user.model.UserIdentity;
 import bed.hoc.exercice_hoc.user.repository.UserRepository;
 import bed.hoc.exercice_hoc.user.utils.PasswordManager;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,11 @@ public class UserServiceImpl implements UserService {
         return UserToDTOMapper.getDTOGetFromEntity(this.getUserEntity(id));
     }
 
+    /**
+     * business method used in other services
+     * @param id the id of user to be found
+     * @return The {@link UserEntity} retrieved, of a {@link UserNotFoundException} otherwise
+     */
     @Override
     public UserEntity getUserEntity(int id) {
         return this.userRepository.findById(id).orElseThrow(() -> {
@@ -69,7 +75,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTOGet saveUser(UserDTOCreate dto) {
-        this.checkDuplicateFields(null, dto);
+        this.checkDuplicateFields(new UserIdentity(null,
+                dto.getEmail(),
+                dto.getUsername(),
+                dto.getName(),
+                dto.getFirstname()), CREATE_NEW);
         var user = UserToDTOMapper.getEntityFromDTOCreate(dto);
         this.userRepository.save(user);
         return UserToDTOMapper.getDTOGetFromEntity(user);
@@ -77,7 +87,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTOGet updateUser(UserDTOUpdate dto) {
-        this.checkDuplicateFields(dto, null);
+        this.checkDuplicateFields(new UserIdentity(dto.getId(),
+                dto.getEmail(),
+                dto.getUsername(),
+                dto.getName(),
+                dto.getFirstname()), UPDATE);
         var user = this.getUserEntity(dto.getId());
         UserToDTOMapper.updateEntityFromDTO(user, dto);
         this.userRepository.save(user);
@@ -95,36 +109,37 @@ public class UserServiceImpl implements UserService {
         this.userRepository.deleteAllById(ids);
     }
 
-    private void checkDuplicateFields(UserDTOUpdate dtoUpdate, UserDTOCreate dtoCreate) {
+    /**
+     * check for potential duplicate fields while trying to update or create a user
+     * @param identity a record {@link UserIdentity} containing the needed properties for the checks
+     * @param action for the logs, assessing in the message the error happens during a create or an update
+     * @throws EmailAlreadyExistsException if the email already exists for a user
+     * @throws NameAndFirstnameAlreadyExistsException if the couple name and firstname is already taken
+     * @throws UsernameAlreadyTakenException if the username is already taken
+     */
+    private void checkDuplicateFields(UserIdentity identity, String action) {
+        Integer currentId = identity.id();
 
-        boolean isUpdate = dtoUpdate != null;
-        Integer currentId = isUpdate ? dtoUpdate.getId() : null;
-        String email = isUpdate ? dtoUpdate.getEmail() : dtoCreate.getEmail();
-        String name = isUpdate ? dtoUpdate.getName() : dtoCreate.getName();
-        String firstname = isUpdate ? dtoUpdate.getFirstname() : dtoCreate.getFirstname();
-        String username = isUpdate ? dtoUpdate.getUsername() : dtoCreate.getUsername();
-        String action = isUpdate ? UPDATE : CREATE_NEW;
-
-        userRepository.findByEmail(email)
+        userRepository.findByEmail(identity.email())
                 .filter(u -> !u.getId().equals(currentId))
                 .ifPresent(u -> {
                     log.error(MAIL_ALREADY_EXISTS, action);
-                    throw new EmailAlreadyExistsException(String.format("Mail %s is already taken.", email));
+                    throw new EmailAlreadyExistsException(String.format("Mail %s is already taken.", identity.email()));
                 });
 
-        userRepository.findByNameAndFirstname(name, firstname)
+        userRepository.findByNameAndFirstname(identity.name(), identity.firstname())
                 .filter(u -> !u.getId().equals(currentId))
                 .ifPresent(u -> {
                     log.error(COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS, action);
                     throw new NameAndFirstnameAlreadyExistsException(
-                            String.format("The name %s %s is already used by another account.", name, firstname));
+                            String.format("The name %s %s is already used by another account.", identity.name(), identity.firstname()));
                 });
 
-        userRepository.findByUsername(username)
+        userRepository.findByUsername(identity.username())
                 .filter(u -> !u.getId().equals(currentId))
                 .ifPresent(u -> {
                     log.error(USERNAME_ALREADY_EXISTS, action);
-                    throw new UsernameAlreadyTakenException(String.format("Username %s is already in use.", username));
+                    throw new UsernameAlreadyTakenException(String.format("Username %s is already in use.", identity.username()));
                 });
     }
 

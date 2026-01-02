@@ -53,15 +53,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderDTOGet updateOrder(int userId, OrderDTOUpdate dto) {
-        //check quantity validity
-        if (dto.getItems().stream().anyMatch(predicate -> predicate.getQuantity() <= 0)) {
-            var itemInvalid = dto.getItems().stream().filter(predicate -> predicate.getQuantity() <= 0).findFirst().orElse(null);
-            throw new InvalidQuantityException(
-                    itemInvalid != null ?
-                            String.format("Product %s has a invalid quantity of %s", itemInvalid.getProductId().toString(), itemInvalid.getQuantity().toString())
-                            : "A product was set with an invalid quantity."
-            );
-        }
+
+        this.validateQuantities(dto);
 
         var context = this.buildUpdateContext(userId, dto);
 
@@ -83,6 +76,12 @@ public class OrderServiceImpl implements OrderService {
         this.repository.deleteByUser(user);
     }
 
+    /**
+     * builds the context of an order update
+     * @param userId an integer for the id of the user
+     * @param dto an {@link OrderDTOUpdate} used to create the context
+     * @return a {@link OrderUpdateContext} that will represent all needed information of the order
+     */
     private OrderUpdateContext buildUpdateContext(int userId, OrderDTOUpdate dto) {
 
         var user = userService.getUserEntity(userId);
@@ -94,7 +93,7 @@ public class OrderServiceImpl implements OrderService {
                         .toList()
         );
 
-        // transformed into a map for performance. in Collectors.toMap() works like that :
+        // transformed into a map for performance. Collectors.toMap() works like that :
         // the first parameter will be the key. since it's a list of product entities, we want ids in key.
         // the second one is the entity itself. Since it needs a function, we take the product as parameter and return it directly.
         // that's why the second parameter is p -> p.
@@ -124,24 +123,20 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
+    /**
+     * centralized method to check the dto validity
+     * @param item the {@link OrderItemDTO} containing the product id to be checked
+     * @param existingItemsMap a map of {@link OrderItemEntity} that will be checked
+     * @param productMap a map of {@link ProductEntity} that will be added to the order
+     */
     private void checkDtoValidity(OrderItemDTO item, Map<Integer, OrderItemEntity> existingItemsMap, Map<Integer, ProductEntity> productMap) {
         var product = productMap.get(item.getProductId());
         if (product == null)
             throw new ProductNotFoundException(String.format("Product with id %s wasn't retrieved in database", item.getProductId().toString()));
 
-        if (!product.isActive())
-            throw new ProductInactiveException(String.format("the product %s (%s) is inactive", product.getId().toString(), product.getName()));
+        this.validateProduct(product);
 
-        int oldQuantity = 0;
-
-        //here we check if the product was already present in the order, to not double subtract the amount if it was already here.
-        var existingItem = existingItemsMap.get(item.getProductId());
-        if (existingItem != null) {
-            oldQuantity = existingItem.getQuantity();
-        }
-
-        // if the item wasn't present, oldQuantity stays at 0, and so delta just = item.getQuantity()
-        int delta = item.getQuantity() - oldQuantity;
+        int delta = this.computeStockDelta(item, existingItemsMap);
 
         //check stock availability
         if (product.getStockQuantity() - delta < 0) {
@@ -153,22 +148,73 @@ public class OrderServiceImpl implements OrderService {
         product.setStockQuantity(product.getStockQuantity() - delta);
     }
 
+    /**
+     * validate that all quantities set up for products are valid (a.k.a. > 0)
+     * @param dto the {@link OrderDTOUpdate} containing the {@link OrderItemDTO} list to check
+     */
+    private void validateQuantities(OrderDTOUpdate dto) {
+        if (dto.getItems().stream().anyMatch(predicate -> predicate.getQuantity() <= 0)) {
+            var itemInvalid = dto.getItems().stream().filter(predicate -> predicate.getQuantity() <= 0).findFirst().orElse(null);
+            throw new InvalidQuantityException(
+                    itemInvalid != null ?
+                            String.format("Product %s has a invalid quantity of %s", itemInvalid.getProductId().toString(), itemInvalid.getQuantity().toString())
+                            : "A product was set with an invalid quantity."
+            );
+        }
+    }
+
+    /**
+     * compare and extract the existing delta in stock when updating a product quantity
+     * @param item the {@link OrderItemDTO} containing the product id and quantity to check
+     * @param existingItemsMap a map with {@link OrderItemEntity} as value to gather to existing product quantity
+     * @return an int >=0, 0 when the product wasn't already present in the order previously
+     */
+    private int computeStockDelta(OrderItemDTO item, Map<Integer, OrderItemEntity> existingItemsMap) {
+        var existingItem = existingItemsMap.get(item.getProductId());
+        return item.getQuantity() - (existingItem != null ? existingItem.getQuantity() : 0);
+    }
+
+    /**
+     * Check if the product that is being added to the order is Active
+     * @param product a {@link ProductEntity}
+     */
+    private void validateProduct(ProductEntity product) {
+        if (!product.isActive()) {
+            throw new ProductInactiveException(
+                    String.format("the product %s (%s) is inactive", product.getId(), product.getName()));
+        }
+    }
+
+    /**
+     * create a new {@link OrderEntity} based on information from the dto
+     * @param user the {@link UserEntity} that passes the command
+     * @param dto the {@link OrderDTOUpdate} send by the request to create the order
+     * @param productMap a map of {@link ProductEntity} to be added to the order
+     * @return an {@link OrderEntity} that will be saved in database
+     */
     private OrderEntity createOrder(UserEntity user, OrderDTOUpdate dto, Map<Integer, ProductEntity> productMap) {
         var orderEntity = new OrderEntity();
         orderEntity.setUser(user);
         var listOrderItemEntity = dto.getItems().stream().map(item ->
                 new OrderItemEntity(null, orderEntity, productMap.get(item.getProductId()), item.getQuantity())
-        ).collect(Collectors.toList()); // not .toList() bc jpa doesn't like immutable lists (and to list gives immutable list)
+        ).toList();
         OrderToDTOMapper.updateEntityFromDTO(orderEntity, listOrderItemEntity);
         return orderEntity;
     }
 
+    /**
+     * Centralized method for updating an existing order
+     * @param orderEntity the {@link OrderEntity} to be updated
+     * @param dto the {@link OrderDTOUpdate} used for the update coming from the request
+     * @param productMap a map of {@link ProductEntity} containing the product to add or update in the order
+     * @return the updated {@link OrderEntity}
+     */
     private OrderEntity updateOrderItems(OrderEntity orderEntity, OrderDTOUpdate dto, Map<Integer, ProductEntity> productMap) {
         // transforming the list into map for performance gain. map.get() is lighter to user than foreach-ing a list
         // or doing .filter().findFirst() or things like that.
         Map<Integer, OrderItemEntity> existing =
                 orderEntity.getItems().stream()
-                        .collect(Collectors.toMap(OrderItemEntity::getId, i -> i));
+                        .collect(Collectors.toMap(oi -> oi.getProduct().getId(), i -> i));
 
         List<OrderItemEntity> updated = new ArrayList<>();
 
@@ -176,8 +222,8 @@ public class OrderServiceImpl implements OrderService {
             OrderItemEntity entity;
 
             // if the id is not null AND the OrderItemEntity was already present in the order previously
-            if (dtoItem.getId() != null && existing.containsKey(dtoItem.getId())) {
-                entity = existing.remove(dtoItem.getId());
+            if (dtoItem.getId() != null && existing.containsKey(dtoItem.getProductId())) {
+                entity = existing.remove(dtoItem.getProductId());
                 entity.setQuantity(dtoItem.getQuantity());
             } else {
                 // OR : the product wasn't there in the order. we create a new OrderItemEntity that will be added
@@ -191,7 +237,7 @@ public class OrderServiceImpl implements OrderService {
         });
         // note that the mapper doesn't do a setitems(). it clears the same list and then do a .addAll()
         // it's because the jpa entity has to still has the same list (same memory allocation) to persist correctly.
-        //Otherwise it would be considered as a "new list" / "other list" and could cause problems of persistence in db.
+        //Otherwise, it would be considered as a "new list" / "other list" and could cause problems of persistence in db.
         OrderToDTOMapper.updateEntityFromDTO(orderEntity, updated);
         return orderEntity;
     }

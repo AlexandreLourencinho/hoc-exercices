@@ -46,10 +46,18 @@ public class ProductServiceImpl implements ProductService {
         return this.repository.findAll().stream().map(ProductToDTOMapper::entityToDTOget).toList();
     }
 
+    /**
+     * business method used in other services
+     * @param ids list of products ids as Integer
+     * @return a list of {@link ProductEntity} matching the givend ids
+     */
     @Override
     public List<ProductEntity> getProductsEntity(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new ProductNotFoundException("No product id provided.");
+        }
         var listProduct = this.repository.findAllById(ids);
-        this.assertAllProductsFound(ids, listProduct);
+        this.assertAllRequestedProductsExist(ids, listProduct);
         return listProduct;
     }
 
@@ -75,6 +83,12 @@ public class ProductServiceImpl implements ProductService {
         this.repository.deleteAllById(ids);
     }
 
+    /**
+     * abstraction of the logic to find a product
+     * @param id the id of the product
+     * @return a {@link ProductEntity} if the product is found
+     * @throws ProductNotFoundException if the product isn't retrieved
+     */
     private ProductEntity findProductOrElseThrow(int id) {
         return this.repository.findById(id).orElseThrow(() -> {
             log.error("Product with id {} wasn't retrieved in database", id);
@@ -82,7 +96,13 @@ public class ProductServiceImpl implements ProductService {
         });
     }
 
-    private void assertAllProductsFound(List<Integer> requestedIds, List<ProductEntity> foundProducts) {
+    /**
+     * check if the requested products really exists in DB
+     * @param requestedIds a list of integer coming from the request
+     * @param foundProducts the list of product found for the ids in requestedIds
+     * @throws ProductNotFoundException if a product isn't retrieved in the list from one of the ids
+     */
+    private void assertAllRequestedProductsExist(List<Integer> requestedIds, List<ProductEntity> foundProducts) {
         var foundIds = foundProducts.stream()
                 .map(ProductEntity::getId)
                 .collect(Collectors.toSet());
