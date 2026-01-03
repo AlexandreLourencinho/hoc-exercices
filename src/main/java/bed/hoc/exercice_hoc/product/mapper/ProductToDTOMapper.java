@@ -15,15 +15,15 @@ public class ProductToDTOMapper {
     }
 
     public static ProductDTOGet entityToDTOget(ProductEntity entity) {
-        return new ProductDTOGet(entity.getId(), entity.getName(), entity.getDescription(), entity.getPrice(), entity.getStockQuantity(), entity.isActive());
+        return null;
     }
 
     public static ProductEntity dtoCreateToEntity(ProductDTOCreate dto) {
-        return new ProductEntity(null, dto.getName(), dto.getDescription(), dto.getPrice(), dto.getStockQuantity(), Boolean.TRUE.equals(dto.getActive()));
+        return null;
     }
 
     public static ProductDTOStock entityToDTOStock(ProductEntity entity) {
-        return new ProductDTOStock(entity.getStockQuantity());
+        return null;
     }
 
     public static void dtoUpdateToEntity(ProductDTOUpdate dto, ProductEntity entity) {

@@ -1,84 +1,51 @@
 package bed.hoc.exercice_hoc.product.controller;
 
-import bed.hoc.exercice_hoc.product.dto.ProductDTOCreate;
-import bed.hoc.exercice_hoc.product.dto.ProductDTOUpdate;
-import bed.hoc.exercice_hoc.product.exceptions.ProductNotFoundException;
-import bed.hoc.exercice_hoc.product.services.ProductService;
-import jakarta.annotation.Nullable;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/product")
 public class ProductController {
 
-    private final ProductService service;
-
-    @Autowired
-    public ProductController(ProductService service) {
-        this.service = service;
+    // find the mapping for the get request with a path variable id. the
+    public ResponseEntity getProduct() {
+        return null;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity getProduct(@PathVariable int id) {
-        try {
-            return ResponseEntity.ok(this.service.getProduct(id));
-        } catch (ProductNotFoundException pnfex) {
-            return this.manageCatchedError(pnfex);
-        }
+    @GetMapping("/stock")//here we want a path variable for the id of the product, like above. i've left the
+    // getmapping because in the architecture and requests, i decided to add '/stock' in this path, and you'll have to keep it.
+    // but you'll have to know how to add a pathVariable here.
+    public ResponseEntity getProductStock() {
+        return null;
     }
 
-    @GetMapping("/stock/{id}")
-    public ResponseEntity getProductStock(@PathVariable int id) {
-        try {
-            return ResponseEntity.ok(this.service.getProductStock(id));
-        } catch (ProductNotFoundException pnfex) {
-            return this.manageCatchedError(pnfex);
-        }
+    // here we want a request param with as request a list of ids. You'll have to search how to pass request params as list
+    public ResponseEntity getProducts() {
+        return null;
     }
 
-    @GetMapping
-    public ResponseEntity getProducts(@RequestParam @Nullable List<Integer> ids) {
-        if (ids != null && !ids.isEmpty()) {
-            return ResponseEntity.ok(this.service.getProducts(ids));
-        } else {
-            return ResponseEntity.ok(this.service.getProducts());
-        }
+    // find the mapping for a create endpoint. it requires a CREATE DTO. check the DTO to know what's needed.
+    // don't forget the @Valid annotation for the endpoint.
+    public ResponseEntity createProduct() {
+        return null;
     }
 
-    @PostMapping
-    public ResponseEntity createProduct(@RequestBody @Valid ProductDTOCreate dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(this.service.createProduct(dto));
+    // find the mapping for an update endpoint. it requires a body UPDATE dto. check the DTO to know what's needed.
+    // don't forget the @Valid annotation for the endpoint.
+    public ResponseEntity updateProduct() {
+        return null;
     }
 
-    @PutMapping
-    public ResponseEntity updateProduct(@RequestBody @Valid ProductDTOUpdate dto) {
-        try {
-            return ResponseEntity.ok(this.service.updateProduct(dto));
-        } catch (ProductNotFoundException pnfex) {
-            return this.manageCatchedError(pnfex);
-        }
+    //find the mapping for a delete endpoint. we're waiting for a path variable here
+    public ResponseEntity<Void> deleteProduct() {
+        return null;
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable int id) {
-        this.service.deleteProduct(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping
-    public ResponseEntity<Void> deleteProducts(@RequestParam List<Integer> ids) {
-        this.service.deleteProducts(ids);
-        return ResponseEntity.noContent().build();
-    }
-
-    private ResponseEntity<String> manageCatchedError(ProductNotFoundException pnex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pnex.getMessage());
+    // find how those could be passed as RequestParam through doc or stackoverflow
+    public ResponseEntity<Void> deleteProducts() {
+        return null;
     }
 
 }

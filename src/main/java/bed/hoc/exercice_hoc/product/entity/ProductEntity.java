@@ -21,6 +21,10 @@ import java.math.BigDecimal;
 public class ProductEntity {
 
     @Id
+    // those two annotation ensure that that field is the id and the generation is auto incremental.
+    //That means when creating and persisting a new entity, the id should be null. this id will be filled once the entity
+    // is saved in database.
+    //this is true for every entity in this project.
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
