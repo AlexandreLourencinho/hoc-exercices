@@ -18,6 +18,11 @@ This is the simplest package and the one where the most guidance has been left.
 
 There are also many indications in the `user` package, but it is slightly more complex than `product`.
 
+Finally, the project won't compile until the product package is fixed (the repository) and the unit tests won't pass\
+until you finish the mapper of the product package.
+
+This is intentional. You'll HAVE to start with this one to make the project start!
+
 ---
 
 ### 3 - Keep the `order` package for last

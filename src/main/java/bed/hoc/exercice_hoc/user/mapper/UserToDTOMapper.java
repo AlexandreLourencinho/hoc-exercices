@@ -19,17 +19,11 @@ public class UserToDTOMapper {
     }
 
     public static UserDTOGet getDTOGetFromEntity(UserEntity entity) {
-        return new UserDTOGet(entity.getId(), entity.getUsername(), entity.getName(), entity.getFirstname(), entity.getEmail());
+        return null;
     }
 
     public static void updateEntityFromDTO(UserEntity entity, UserDTOUpdate dto) {
-        entity.setEmail(dto.getEmail())
-                .setFirstname(dto.getFirstname())
-                .setName(dto.getName())
-                .setUsername(dto.getUsername());
-        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
-            entity.setPassword(PasswordManager.hashPassword(dto.getPassword()));
-        }
+        //TODO
     }
 
 }

@@ -6,8 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
-public interface UserRepository extends JpaRepository<UserEntity, Integer> {
+@Repository // sets the interface as a repository
+public interface UserRepository extends JpaRepository<UserEntity, Integer> { // extends jpa repository to inherite from jpa methods
+
+    //every method defined here follows the JPA language "findBy**Field**"
+    // every find method that returns only one results always returns an optional
 
     Optional<UserEntity> findByEmail(String email);
 
