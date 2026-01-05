@@ -20,11 +20,6 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    public static final String CREATE_NEW = "create new";
-    public static final String UPDATE = "update";
-    private static final String MAIL_ALREADY_EXISTS = "email already exists in db while trying to {} user";
-    private static final String COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS = "couple name + firstname already exists in db while trying to {} user";
-    private static final String USERNAME_ALREADY_EXISTS = "Username already exists in db while trying to {} user";
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository) {
@@ -96,36 +91,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkDuplicateFields(UserDTOUpdate dtoUpdate, UserDTOCreate dtoCreate) {
-
-        boolean isUpdate = dtoUpdate != null;
-        Integer currentId = isUpdate ? dtoUpdate.getId() : null;
-        String email = isUpdate ? dtoUpdate.getEmail() : dtoCreate.getEmail();
-        String name = isUpdate ? dtoUpdate.getName() : dtoCreate.getName();
-        String firstname = isUpdate ? dtoUpdate.getFirstname() : dtoCreate.getFirstname();
-        String username = isUpdate ? dtoUpdate.getUsername() : dtoCreate.getUsername();
-        String action = isUpdate ? UPDATE : CREATE_NEW;
-
-        userRepository.findByEmail(email)
-                .filter(u -> !u.getId().equals(currentId))
-                .ifPresent(u -> {
-                    log.error(MAIL_ALREADY_EXISTS, action);
-                    throw new EmailAlreadyExistsException("This mail is already used by another account");
-                });
-
-        userRepository.findByNameAndFirstname(name, firstname)
-                .filter(u -> !u.getId().equals(currentId))
-                .ifPresent(u -> {
-                    log.error(COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS, action);
-                    throw new NameAndFirstnameAlreadyExistsException(
-                            "The couple name + firstname is already used by another account");
-                });
-
-        userRepository.findByUsername(username)
-                .filter(u -> !u.getId().equals(currentId))
-                .ifPresent(u -> {
-                    log.error(USERNAME_ALREADY_EXISTS, action);
-                    throw new UsernameAlreadyTakenException("This username is already in use.");
-                });
+        //TODO here you need to use only one method without code duplication to check if the create OR the update is valid.
+        // you should have no complexity alert from sonar or intellij and no code duplication here.
+        // install the sonar plugin to be sure it's complexity isn't too high.
     }
 
 }

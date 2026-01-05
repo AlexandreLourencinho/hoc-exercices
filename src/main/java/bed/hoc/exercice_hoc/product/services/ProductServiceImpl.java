@@ -83,14 +83,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void assertAllProductsFound(List<Integer> requestedIds, List<ProductEntity> foundProducts) {
-        var foundIds = foundProducts.stream()
-                .map(ProductEntity::getId)
-                .collect(Collectors.toSet());
-
-        if (!foundIds.containsAll(requestedIds)) {
-            log.error("Some products were not found. Requested ids: {}, found ids: {}", requestedIds, foundIds);
-            throw new ProductNotFoundException();
-        }
+        //TODO this method should check that all requested products exists in the database.
     }
 
 }

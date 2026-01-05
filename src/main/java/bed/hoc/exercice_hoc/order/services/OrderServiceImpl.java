@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,6 +56,8 @@ public class OrderServiceImpl implements OrderService {
             throw new InvalidQuantityException("There is a negative quantity");
         }
 
+        //TODO here you should get the new OrderUpdateContext object from the method buildUpdateContext.
+        // check the class OrderUpdateContext and how it's used in the rest of the method to deduce how it should be built
         var context = this.buildUpdateContext(userId, dto);
 
         // check if all products are found in db and if the stock is sufficient to add to the order
@@ -78,44 +79,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderUpdateContext buildUpdateContext(int userId, OrderDTOUpdate dto) {
-
-        var user = userService.getUserEntity(userId);
-
-        //get products asked from user. the map here uses the list of items in dto and returns a list with only the ids.
-        var products = productService.getProductsEntity(
-                dto.getItems().stream()
-                        .map(OrderItemDTO::getProductId)
-                        .toList()
-        );
-
-        // transformed into a map for performance. in Collectors.toMap() works like that :
-        // the first parameter will be the key. since it's a list of product entities, we want ids in key.
-        // the second one is the entity itself. Since it needs a function, we take the product as parameter and return it directly.
-        // that's why the second parameter is p -> p.
-        var productMap = products.stream()
-                .collect(Collectors.toMap(ProductEntity::getId, p -> p));// stock products in a map with id in key and product entity in value
-
-        var existingOrder = repository.findByUser(user);
-
-        // transforming the list into map for performance gain. map.get() is much faster than iterating over a list.
-        // the order here is an optional. so there's two cases:
-        // order.map() consider it "present". so it creates the map of existing items.
-        // the 'orElse' here returns an empty map, because otherwise the variable would be null.
-        // and if the variable is null, existingItemsMap.get() in checkDtoValidity would return a null pointer.
-        var existingItemsMap = existingOrder
-                .map(o -> o.getItems().stream()
-                        .collect(Collectors.toMap(
-                                oi -> oi.getProduct().getId(),
-                                oi -> oi
-                        )))
-                .orElse(Collections.emptyMap());
-
-        return new OrderUpdateContext(
-                user,
-                existingOrder,
-                productMap,
-                existingItemsMap
-        );
+        //TODO here you should build the OrderUpdateContext.
+       return null;
     }
 
     private void checkDtoValidity(OrderItemDTO item, Map<Integer, OrderItemEntity> existingItemsMap, Map<Integer, ProductEntity> productMap) {
