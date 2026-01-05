@@ -205,6 +205,17 @@ This level is about **structure**, not features.
 
 ---
 
+### ⚠️ Note on tests
+
+Some methods in this level (like `checkDuplicateFields` in `UserService`, `assertAllProductsFound` in `ProductService`, or `buildUpdateContext` in `OrderService`) **are not fully implemented yet**.
+
+Because of this, **not all unit tests will pass at this stage**.
+
+The objective of Level 2 is **refactoring and structure**, not fixing the business logic yet. Once you implement the missing methods, all tests should pass as in Level 1.
+
+---
+
+
 ## Final note
 
 This level is intentionally more demanding.
