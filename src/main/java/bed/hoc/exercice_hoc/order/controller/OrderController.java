@@ -1,56 +1,29 @@
 package bed.hoc.exercice_hoc.order.controller;
 
-import bed.hoc.exercice_hoc.order.dto.OrderDTOUpdate;
-import bed.hoc.exercice_hoc.order.exceptions.InvalidQuantityException;
-import bed.hoc.exercice_hoc.order.exceptions.OrderNotFoundException;
-import bed.hoc.exercice_hoc.order.exceptions.ProductInactiveException;
-import bed.hoc.exercice_hoc.order.exceptions.StockNotSufficientException;
-import bed.hoc.exercice_hoc.order.services.OrderService;
-import bed.hoc.exercice_hoc.product.exceptions.ProductNotFoundException;
-import bed.hoc.exercice_hoc.user.exceptions.UserNotFoundException;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/order/{userId}")
+@RequestMapping("/order/{userId}") // I've left that so you don't have to think about the path of the controller.
 public class OrderController {
 
-    private final OrderService service;
-
     @Autowired
-    public OrderController(OrderService service) {
-        this.service = service;
+    public OrderController() {
+        //TODO it's up to you to know how to instanciate the controller now. you should know if you manage your way here!
     }
 
-    @GetMapping
-    public ResponseEntity getOrder(@PathVariable int userId) {
-        try {
-            return ResponseEntity.ok(this.service.getOrder(userId));
-        } catch (UserNotFoundException | ProductNotFoundException | OrderNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        }
+    public ResponseEntity getOrder() {
+        return null;
     }
 
-    @PutMapping
-    public ResponseEntity createOrUpdate(@RequestBody @Valid OrderDTOUpdate dto, @PathVariable int userId) {
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(this.service.updateOrder(userId, dto));
-        } catch (ProductNotFoundException | UserNotFoundException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        } catch (InvalidQuantityException | ProductInactiveException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        } catch (StockNotSufficientException ex) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
-        }
+    public ResponseEntity createOrUpdate() {
+        return null;
     }
 
-    @DeleteMapping
-    public ResponseEntity deleteOrder(@PathVariable int userId) {
-        this.service.deleteOrder(userId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity deleteOrder() {
+        return null;
     }
 
 }

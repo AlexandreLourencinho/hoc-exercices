@@ -6,7 +6,7 @@ Before starting, there are a few important rules to follow.
 ---
 
 ### 1 - Read every markdown file carefully
-Every `.md` file (like this one) must be read thoroughly.
+Every markdown `readme.md` or `readme_something.md` file (like this one) must be read thoroughly.
 
 Every line is written for a reason.  
 Do not skip anything.
@@ -63,14 +63,31 @@ They also illustrate when and how such methods should be used.
 
 ---
 
+## Utility classes
+
+Some utility classes (like mappers or password utilities) have private constructors that throw exceptions.
+
+You **do not need to modify or understand their internals** in depth.
+
+They exist to:
+
+* prevent instantiation
+* reduce boilerplate
+* improve readability
+
+Focus on business logic, not infrastructure details.
+
+---
+
 ### 7 - Do not forget unit tests
 The solution has around **90% test coverage**.
 
 Every class (except `Application.java`) has its own test class.
 
 Some tests are already implemented to serve as examples:
-- one controller test
-- one service test
+- one controller test (the user controller's tests)
+- one service test (the product's service tests)
+- some mapper test (the one of the methods that are still presents, one in the user package, one in the product package)
 
 Use them as references.
 

@@ -15,19 +15,17 @@ public class OrderToDTOMapper {
     }
 
     public static OrderDTOGet entityToDTO(OrderEntity entity) {
-        return new OrderDTOGet(entity.getId(),
-                entity.getUser().getId(),
-                entity.getItems().stream().map(OrderToDTOMapper::entityItemToDTO).toList(),
-                entity.getTotalPrice());
+        return null;
     }
 
     public static void updateEntityFromDTO(OrderEntity entity, List<OrderItemEntity> items) {
-        entity.getItems().clear();
-        entity.getItems().addAll(items); // clear and addall instead of set to avoid the lost of persistance through jpa
+        //beware of how you update the list of entity. you have to not use entity.set() here, since the persistence
+        // needs to be kept, and so the SAME list (memory allocation) should be kept.
+        // up to you to search and find how to clear a list and add all elements of another list.
     }
 
     public static OrderItemDTO entityItemToDTO(OrderItemEntity entity) {
-        return new OrderItemDTO(entity.getId(), entity.getProduct().getId(), entity.getQuantity());
+        return null;
     }
 
 }
