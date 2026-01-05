@@ -1,15 +1,11 @@
 package bed.hoc.exercice_hoc.order.exceptions;
 
-import bed.hoc.exercice_hoc.common.exceptions.AbstractControllerException;
-import org.springframework.http.HttpStatus;
+public class OrderNotFoundException extends RuntimeException {
 
-public class OrderNotFoundException extends AbstractControllerException {
-
-    private static final String ERROR_CODE = "ORDER_NOT_FOUND";
-    private static final int HTTP_STATUS = HttpStatus.NOT_FOUND.value();
+    // TODO adapt this exception to work with the centralized ControllerAdvice.
 
     public OrderNotFoundException(String message) {
-        super(ERROR_CODE, HTTP_STATUS, message);
+        super(message);
     }
 
 }

@@ -1,15 +1,11 @@
 package bed.hoc.exercice_hoc.order.exceptions;
 
-import bed.hoc.exercice_hoc.common.exceptions.AbstractControllerException;
-import org.springframework.http.HttpStatus;
+public class ProductInactiveException extends RuntimeException {
 
-public class ProductInactiveException extends AbstractControllerException {
-
-    private static final String ERROR_CODE = "PRODUCT_INACTIVE";
-    private static final int HTTP_STATUS = HttpStatus.BAD_REQUEST.value();
+    // TODO adapt this exception to work with the centralized ControllerAdvice.
 
     public ProductInactiveException(String message) {
-        super(ERROR_CODE, HTTP_STATUS, message);
+        super(message);
     }
 
 }

@@ -23,18 +23,6 @@ class ControllerAdviceTest {
 
     @Test
     void handleBusinessException() {
-        var ex = new InvalidQuantityException("invalid qtity");
-        when(this.req.getRequestURI()).thenReturn("/path/to/value");
-
-        var result = this.advice.handleBusinessException(ex, this.req);
-
-        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
-        assertNotNull(result.getBody());
-        assertEquals(400, result.getBody().getStatusCode());
-        assertEquals("invalid qtity", result.getBody().getMessage());
-        assertEquals("INVALID_QUANTITY", result.getBody().getErrorCode());
-        assertEquals("/path/to/value", result.getBody().getPath());
-        assertNotNull(result.getBody().getTimeStamp());
     }
 
     @Test

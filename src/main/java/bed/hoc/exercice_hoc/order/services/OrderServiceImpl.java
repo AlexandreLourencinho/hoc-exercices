@@ -153,14 +153,7 @@ public class OrderServiceImpl implements OrderService {
      * @param dto the {@link OrderDTOUpdate} containing the {@link OrderItemDTO} list to check
      */
     private void validateQuantities(OrderDTOUpdate dto) {
-        if (dto.getItems().stream().anyMatch(predicate -> predicate.getQuantity() <= 0)) {
-            var itemInvalid = dto.getItems().stream().filter(predicate -> predicate.getQuantity() <= 0).findFirst().orElse(null);
-            throw new InvalidQuantityException(
-                    itemInvalid != null ?
-                            String.format("Product %s has a invalid quantity of %s", itemInvalid.getProductId().toString(), itemInvalid.getQuantity().toString())
-                            : "A product was set with an invalid quantity."
-            );
-        }
+        //TODO you should check the quantities are valid there
     }
 
     /**
@@ -170,8 +163,8 @@ public class OrderServiceImpl implements OrderService {
      * @return an int >=0, 0 when the product wasn't already present in the order previously
      */
     private int computeStockDelta(OrderItemDTO item, Map<Integer, OrderItemEntity> existingItemsMap) {
-        var existingItem = existingItemsMap.get(item.getProductId());
-        return item.getQuantity() - (existingItem != null ? existingItem.getQuantity() : 0);
+        // TODO implement logic to compute the stock change for this item
+        return 0;
     }
 
     /**
@@ -179,10 +172,7 @@ public class OrderServiceImpl implements OrderService {
      * @param product a {@link ProductEntity}
      */
     private void validateProduct(ProductEntity product) {
-        if (!product.isActive()) {
-            throw new ProductInactiveException(
-                    String.format("the product %s (%s) is inactive", product.getId(), product.getName()));
-        }
+        //todo you should check if a product is valid there.
     }
 
     /**

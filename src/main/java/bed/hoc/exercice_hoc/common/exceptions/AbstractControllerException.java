@@ -9,6 +9,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public abstract class AbstractControllerException extends RuntimeException {
 
+    // TODO This class will be central to Level 3. Think about how to use it.
+
     private final String errorCode;
     private final int statusCode;
 

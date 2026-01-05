@@ -13,17 +13,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ControllerAdvice {
 
-    @ExceptionHandler(AbstractControllerException.class)
-    public ResponseEntity<ApiError> handleBusinessException(AbstractControllerException ex, HttpServletRequest req) {
-        log.error(ex.getMessage(), ex);
-        return ResponseEntity.status(ex.getStatusCode())
-                .body(new ApiError(ex.getStatusCode(),
-                        ex.getMessage(),
-                        req.getRequestURI(),
-                        ex.getErrorCode()));
+//    @ExceptionHandler(XXX.class) TODO find a way to make all your business exception be catched by this exception handler. Only this one. no other method creation is allowed here.
+    public ResponseEntity<ApiError> handleBusinessException() {
+        return null;
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(Exception.class) // every no business exception
     public ResponseEntity<ApiError> handleUnexpectedError(Exception ex, HttpServletRequest req) {
         log.error(ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(

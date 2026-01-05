@@ -23,9 +23,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     public static final String CREATE_NEW = "create new";
     public static final String UPDATE = "update";
-    private static final String MAIL_ALREADY_EXISTS = "email already exists in db while trying to {} user";
-    private static final String COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS = "couple name + firstname already exists in db while trying to {} user";
-    private static final String USERNAME_ALREADY_EXISTS = "Username already exists in db while trying to {} user";
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository) {
@@ -118,29 +115,7 @@ public class UserServiceImpl implements UserService {
      * @throws UsernameAlreadyTakenException if the username is already taken
      */
     private void checkDuplicateFields(UserIdentity identity, String action) {
-        Integer currentId = identity.id();
-
-        userRepository.findByEmail(identity.email())
-                .filter(u -> !u.getId().equals(currentId))
-                .ifPresent(u -> {
-                    log.error(MAIL_ALREADY_EXISTS, action);
-                    throw new EmailAlreadyExistsException(String.format("Mail %s is already taken.", identity.email()));
-                });
-
-        userRepository.findByNameAndFirstname(identity.name(), identity.firstname())
-                .filter(u -> !u.getId().equals(currentId))
-                .ifPresent(u -> {
-                    log.error(COUPLE_NAME_FIRSTNAME_ALREADY_EXISTS, action);
-                    throw new NameAndFirstnameAlreadyExistsException(
-                            String.format("The name %s %s is already used by another account.", identity.name(), identity.firstname()));
-                });
-
-        userRepository.findByUsername(identity.username())
-                .filter(u -> !u.getId().equals(currentId))
-                .ifPresent(u -> {
-                    log.error(USERNAME_ALREADY_EXISTS, action);
-                    throw new UsernameAlreadyTakenException(String.format("Username %s is already in use.", identity.username()));
-                });
+        // TODO implement the duplicate check using the provided UserIdentity
     }
 
 }
